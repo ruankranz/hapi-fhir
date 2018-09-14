@@ -70,7 +70,6 @@ import org.hl7.fhir.r4.utils.NarrativeGenerator;
 import org.hl7.fhir.r4.utils.ToolingExtensions;
 import org.hl7.fhir.r4.utils.TranslatingUtilities;
 import org.hl7.fhir.r4.utils.formats.CSVWriter;
-import org.hl7.fhir.r4.utils.formats.XLSXWriter;
 import org.hl7.fhir.utilities.CommaSeparatedStringBuilder;
 import org.hl7.fhir.utilities.Utilities;
 import org.hl7.fhir.utilities.validation.ValidationMessage;
@@ -3165,50 +3164,7 @@ public class ProfileUtilities extends TranslatingUtilities {
   }
 
 
-  // generate schematrons for the rules in a structure definition
-  public void generateSchematrons(OutputStream dest, StructureDefinition structure) throws IOException, DefinitionException {
-    if (structure.getDerivation() != TypeDerivationRule.CONSTRAINT)
-      throw new DefinitionException("not the right kind of structure to generate schematrons for");
-    if (!structure.hasSnapshot())
-      throw new DefinitionException("needs a snapshot");
 
-  	StructureDefinition base = context.fetchResource(StructureDefinition.class, structure.getBaseDefinition());
-
-  	if (base != null) {
-  	  SchematronWriter sch = new SchematronWriter(dest, SchematronType.PROFILE, base.getName());
-
-  	  ElementDefinition ed = structure.getSnapshot().getElement().get(0);
-  	  generateForChildren(sch, "f:"+ed.getPath(), ed, structure, base);
-  	  sch.dump();
-  	}
-  }
-
-  // generate a CSV representation of the structure definition
-  public void generateCsvs(OutputStream dest, StructureDefinition structure, boolean asXml) throws IOException, DefinitionException, Exception {
-    if (!structure.hasSnapshot())
-      throw new DefinitionException("needs a snapshot");
-
-    CSVWriter csv = new CSVWriter(dest, structure, asXml);
-
-    for (ElementDefinition child : structure.getSnapshot().getElement()) {
-      csv.processElement(child);
-    }
-    csv.dump();
-  }
-  
-  // generate an Excel representation of the structure definition
-  public void generateXlsx(OutputStream dest, StructureDefinition structure, boolean asXml) throws IOException, DefinitionException, Exception {
-    if (!structure.hasSnapshot())
-      throw new DefinitionException("needs a snapshot");
-
-    XLSXWriter xlsx = new XLSXWriter(dest, structure, asXml);
-
-    for (ElementDefinition child : structure.getSnapshot().getElement()) {
-      xlsx.processElement(child);
-    }
-    xlsx.dump();
-  }
-  
   private class Slicer extends ElementDefinitionSlicingComponent {
     String criteria = "";
     String name = "";   
@@ -3234,47 +3190,6 @@ public class ProfileUtilities extends TranslatingUtilities {
       }
     } else
       return new Slicer(false);
-  }
-
-  private void generateForChildren(SchematronWriter sch, String xpath, ElementDefinition ed, StructureDefinition structure, StructureDefinition base) throws IOException {
-    //    generateForChild(txt, structure, child);
-    List<ElementDefinition> children = getChildList(structure, ed);
-    String sliceName = null;
-    ElementDefinitionSlicingComponent slicing = null;
-    for (ElementDefinition child : children) {
-      String name = tail(child.getPath());
-      if (child.hasSlicing()) {
-        sliceName = name;
-        slicing = child.getSlicing();        
-      } else if (!name.equals(sliceName))
-        slicing = null;
-      
-      ElementDefinition based = getByPath(base, child.getPath());
-      boolean doMin = (child.getMin() > 0) && (based == null || (child.getMin() != based.getMin()));
-      boolean doMax = child.hasMax() && !child.getMax().equals("*") && (based == null || (!child.getMax().equals(based.getMax())));
-      Slicer slicer = slicing == null ? new Slicer(true) : generateSlicer(child, slicing, structure);
-      if (slicer.check) {
-        if (doMin || doMax) {
-          Section s = sch.section(xpath);
-          Rule r = s.rule(xpath);
-          if (doMin) 
-            r.assrt("count(f:"+name+slicer.criteria+") >= "+Integer.toString(child.getMin()), name+slicer.name+": minimum cardinality of '"+name+"' is "+Integer.toString(child.getMin()));
-          if (doMax) 
-            r.assrt("count(f:"+name+slicer.criteria+") <= "+child.getMax(), name+slicer.name+": maximum cardinality of '"+name+"' is "+child.getMax());
-          }
-        }
-      }
-    for (ElementDefinitionConstraintComponent inv : ed.getConstraint()) {
-      if (inv.hasXpath()) {
-        Section s = sch.section(ed.getPath());
-        Rule r = s.rule(xpath);
-        r.assrt(inv.getXpath(), (inv.hasId() ? inv.getId()+": " : "")+inv.getHuman()+(inv.hasUserData(IS_DERIVED) ? " (inherited)" : ""));
-      }
-    }
-    for (ElementDefinition child : children) {
-      String name = tail(child.getPath());
-      generateForChildren(sch, xpath+"/f:"+name, child, structure, base);
-    }
   }
 
 

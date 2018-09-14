@@ -1350,7 +1350,7 @@ public class GenericClientR4Test {
 		client.search()
 			.forResource(EpisodeOfCare.class)
 			.where(EpisodeOfCare.PATIENT.hasId("123"))
-			.revInclude(Encounter.INCLUDE_EPISODEOFCARE)
+			.revInclude(Encounter.INCLUDE_EPISODE_OF_CARE)
 			.revInclude(Observation.INCLUDE_ENCOUNTER.asRecursive())
 			.returnBundle(Bundle.class)
 			.execute();

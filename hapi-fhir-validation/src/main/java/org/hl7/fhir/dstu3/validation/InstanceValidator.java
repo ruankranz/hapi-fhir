@@ -292,13 +292,6 @@ public class InstanceValidator extends BaseValidator implements IResourceValidat
     source = Source.InstanceValidator;
   }
 
-    public InstanceValidator(ValidationEngine engine) {
-	    super();
-	    this.context = engine.getContext();
-		 fpe = engine.getFpe();
-		 source = Source.InstanceValidator;
-    }
-
 
   @Override
   public boolean isNoInvariantChecks() {
@@ -311,10 +304,12 @@ public class InstanceValidator extends BaseValidator implements IResourceValidat
     return this;
   }
 
+  @Override
   public IValidatorResourceFetcher getFetcher() {
     return this.fetcher;
   }
 
+  @Override
   public IResourceValidator setFetcher(IValidatorResourceFetcher value) {
     this.fetcher = value;
     return this;

@@ -90,6 +90,11 @@ public final class HapiWorkerContext implements IWorkerContext, ValueSetExpander
   }
 
   @Override
+  public StructureDefinition fetchTypeDefinition(String theCode) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public CodeSystem fetchCodeSystem(String theSystem) {
     if (myValidationSupport == null) {
       return null;

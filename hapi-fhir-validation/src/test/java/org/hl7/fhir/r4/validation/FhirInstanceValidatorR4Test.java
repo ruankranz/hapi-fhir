@@ -67,6 +67,7 @@ import org.hl7.fhir.r4.model.StructureDefinition;
 import org.hl7.fhir.r4.model.StructureDefinition.StructureDefinitionKind;
 import org.hl7.fhir.r4.model.ValueSet.ConceptSetComponent;
 import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionComponent;
+import org.hl7.fhir.r4.terminologies.ValueSetExpander;
 import org.hl7.fhir.r4.utils.FHIRPathEngine;
 import org.hl7.fhir.r4.utils.IResourceValidator;
 import org.hl7.fhir.utilities.validation.ValidationMessage;
@@ -155,7 +156,8 @@ public class FhirInstanceValidatorR4Test {
 				ConceptSetComponent arg = (ConceptSetComponent) theInvocation.getArguments()[ 0 ];
 				ValueSetExpansionComponent retVal = mySupportedCodeSystemsForExpansion.get(arg.getSystem());
 				if (retVal == null) {
-					retVal = myDefaultValidationSupport.expandValueSet(nullable(FhirContext.class), arg);
+					ValueSetExpander.ValueSetExpansionOutcome outcome = myDefaultValidationSupport.expandValueSet(nullable(FhirContext.class), arg);
+					return outcome.getValueset().getExpansion();
 				}
 				ourLog.debug("expandValueSet({}) : {}", new Object[] {theInvocation.getArguments()[ 0 ], retVal});
 				return retVal;
@@ -349,7 +351,7 @@ public class FhirInstanceValidatorR4Test {
 		med.getContent().setContentType("LCws");
 		med.getContent().setDataElement(value);
 		med.getContent().setTitle("bbbb syst");
-		med.setStatus(Media.MediaStatus.ABORTED);
+		med.setStatus(Media.MediaStatus.NOTDONE);
 		String encoded = ourCtx.newJsonParser().setPrettyPrint(true).encodeResourceToString(med);
 
 		encoded = encoded.replace(value.getValueAsString(), "%%%2@()()");
@@ -379,7 +381,7 @@ public class FhirInstanceValidatorR4Test {
 		med.getContent().setContentType("LCws");
 		med.getContent().setDataElement(value);
 		med.getContent().setTitle("bbbb syst");
-		med.setStatus(Media.MediaStatus.ABORTED);
+		med.setStatus(Media.MediaStatus.NOTDONE);
 		String encoded = ourCtx.newJsonParser().setPrettyPrint(true).encodeResourceToString(med);
 
 		ourLog.info("Encoded: {}", encoded);
@@ -916,7 +918,7 @@ public class FhirInstanceValidatorR4Test {
 		// input.getMeta().addProfile("http://hl7.org/fhir/StructureDefinition/devicemetricobservation");
 
 		input.addIdentifier().setSystem("http://acme").setValue("12345");
-		input.getContext().setReference("http://foo.com/Encounter/9");
+		input.getEncounter().setReference("http://foo.com/Encounter/9");
 		input.setStatus(ObservationStatus.FINAL);
 		input.getCode().addCoding().setSystem("http://loinc.org").setCode("12345");
 
@@ -936,7 +938,7 @@ public class FhirInstanceValidatorR4Test {
 		input.getMeta().addProfile("http://hl7.org/fhir/StructureDefinition/devicemetricobservation");
 
 		input.addIdentifier().setSystem("http://acme").setValue("12345");
-		input.getContext().setReference("http://foo.com/Encounter/9");
+		input.getEncounter().setReference("http://foo.com/Encounter/9");
 		input.setStatus(ObservationStatus.FINAL);
 		input.getCode().addCoding().setSystem("http://loinc.org").setCode("12345");
 
