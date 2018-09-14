@@ -29,7 +29,7 @@ package org.hl7.fhir.r4.model;
   
 */
 
-// Generated on Sun, May 6, 2018 17:51-0400 for FHIR v3.4.0
+// Generated on Thu, Sep 13, 2018 09:04-0400 for FHIR v3.5.0
 
 import java.util.*;
 
@@ -379,7 +379,7 @@ The type is the Canonical URL of Resource Definition that is the type this refer
       @Override
       public Base makeProperty(int hash, String name) throws FHIRException {
         switch (hash) {
-        case -925155509:  return (Base) getReferenceElement();
+        case -925155509:  return getReferenceElement();
         case 3575610:  return getTypeElement();
         case -1618432855:  return getIdentifier(); 
         case 1671764162:  return getDisplayElement();
