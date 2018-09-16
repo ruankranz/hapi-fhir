@@ -20,10 +20,7 @@ import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.instance.model.api.IIdType;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -377,6 +374,20 @@ class RuleImplOp extends BaseRule /* implements IAuthRule */ {
 						if (!StringUtils.equals(appliesToResourceType, compartmentOwnerResourceType)) {
 							List<RuntimeSearchParam> params = sourceDef.getSearchParamsForCompartmentName(compartmentOwnerResourceType);
 							if (params.isEmpty() == false) {
+
+								List<RuntimeSearchParam> oldParams = params;
+								params = new ArrayList<>(params);
+								for (RuntimeSearchParam nextParam : oldParams) {
+									for (String nextParamPath : nextParam.getPathsSplit()) {
+										for (RuntimeSearchParam nextCandidateParam : sourceDef.getSearchParams()) {
+											if (nextCandidateParam != nextParam) {
+												for (String nextCandidatePath : nextCandidateParam.getPathsSplit()) {
+													nextCandidatePath.toLowerCase();
+												}
+											}
+										}
+									}
+								}
 
 								/*
 								 * If this is a search, we can at least check whether
