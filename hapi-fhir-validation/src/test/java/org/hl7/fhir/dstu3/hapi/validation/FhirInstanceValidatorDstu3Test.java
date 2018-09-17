@@ -59,6 +59,7 @@ import org.hl7.fhir.dstu3.model.ValueSet.ConceptSetComponent;
 import org.hl7.fhir.dstu3.model.ValueSet.ValueSetExpansionComponent;
 import org.hl7.fhir.dstu3.utils.FHIRPathEngine;
 import org.hl7.fhir.instance.model.api.IBaseResource;
+import org.hl7.fhir.utilities.xhtml.XhtmlNode;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -518,14 +519,14 @@ public class FhirInstanceValidatorDstu3Test {
 		is.setUid("urn:oid:1.2.3.4");
 		is.getPatient().setReference("Patient/1");
 
-		is.getModalityListFirstRep().setSystem("http://foo");
+		is.getModalityListFirstRep().setSystem("http://dicom.nema.org/resources/ontology/DCM");
 		is.getModalityListFirstRep().setCode("BAR");
 		is.getModalityListFirstRep().setDisplay("Hello");
 
 		ValidationResult results = myVal.validateWithResult(is);
 		List<SingleValidationMessage> outcome = logResultsAndReturnNonInformationalOnes(results);
-		assertEquals(1, outcome.size());
-		assertEquals("The Coding provided is not in the value set http://hl7.org/fhir/ValueSet/dicom-cid29 (http://hl7.org/fhir/ValueSet/dicom-cid29, and a code should come from this value set unless it has no suitable code) (error message = Code http://foo/BAR was not validated because the code system is not present)", outcome.get(0).getMessage());
+		assertEquals(2, outcome.size());
+		assertEquals("Unknown code: http://dicom.nema.org/resources/ontology/DCM / BAR", outcome.get(0).getMessage());
 
 	}
 

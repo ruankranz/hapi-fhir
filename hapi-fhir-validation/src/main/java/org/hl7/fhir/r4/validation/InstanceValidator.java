@@ -2032,8 +2032,13 @@ public class InstanceValidator extends BaseValidator implements IResourceValidat
       long t = System.nanoTime();
       StructureDefinition sd = context.fetchResource(StructureDefinition.class, url);
       sdTime = sdTime + (System.nanoTime() - t);
-      if (sd != null && (sd.getType().equals(type) || sd.getUrl().equals(type)) && sd.hasSnapshot())
-        return sd;
+		 if (sd != null) {
+			 boolean typeEquals = sd.getType().equals(type);
+			 boolean urlEquals = sd.getUrl().equals(url);
+			 if ((typeEquals || urlEquals) && sd.hasSnapshot()) {
+				 return sd;
+			 }
+		 }
     }
     return null;
   }

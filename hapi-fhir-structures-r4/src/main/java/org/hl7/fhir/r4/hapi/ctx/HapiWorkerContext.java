@@ -230,6 +230,15 @@ public final class HapiWorkerContext implements IWorkerContext, ValueSetExpander
       expandedValueSet = new ValueSetExpansionOutcome(expansion);
     }
 
+    /*
+     * The following valueset is a special case, since the mime types codesystem is very difficult to expand
+     */
+    if (theVs != null && "http://hl7.org/fhir/ValueSet/mimetypes".equals(theVs.getId())) {
+      ValueSet expansion = new ValueSet();
+      expansion.getExpansion().addContains().setCode(theCode).setSystem(theSystem).setDisplay(theDisplay);
+      expandedValueSet = new ValueSetExpansionOutcome(expansion);
+    }
+
     if (expandedValueSet == null) {
       expandedValueSet = expand(theVs, null);
     }
@@ -256,7 +265,7 @@ public final class HapiWorkerContext implements IWorkerContext, ValueSetExpander
 
   @Override
   public ValidationResult validateCode(String code, ValueSet vs) {
-    throw new UnsupportedOperationException();
+    return validateCode(null, code, null, vs);
   }
 
   @Override
@@ -360,7 +369,7 @@ public final class HapiWorkerContext implements IWorkerContext, ValueSetExpander
 
   @Override
   public StructureDefinition fetchTypeDefinition(String typeName) {
-    throw new UnsupportedOperationException();
+    return fetchResource(StructureDefinition.class, "http://hl7.org/fhir/StructureDefinition/" + typeName);
   }
 
   @Override

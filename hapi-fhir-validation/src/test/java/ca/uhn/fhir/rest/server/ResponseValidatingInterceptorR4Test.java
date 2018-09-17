@@ -25,7 +25,9 @@ import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.hapi.validation.FhirInstanceValidator;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
 import org.hl7.fhir.r4.model.IdType;
+import org.hl7.fhir.r4.model.Narrative;
 import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.utilities.xhtml.XhtmlNode;
 import org.junit.*;
 import org.mockito.Mockito;
 
@@ -261,6 +263,7 @@ public class ResponseValidatingInterceptorR4Test {
 	public void testOperationOutcome() throws Exception {
 		myInterceptor.setAddResponseOutcomeHeaderOnSeverity(ResultSeverityEnum.INFORMATION);
 		Patient patient = new Patient();
+		patient.getText().setDiv(new XhtmlNode().setValue("<div>AA</div>")).setStatus(Narrative.NarrativeStatus.GENERATED);
 		patient.addIdentifier().setValue("002");
 		patient.setGender(AdministrativeGender.MALE);
 		myReturnResource = patient;
@@ -308,6 +311,7 @@ public class ResponseValidatingInterceptorR4Test {
 	@Test
 	public void testSearchJsonValidNoValidatorsSpecified() throws Exception {
 		Patient patient = new Patient();
+		patient.getText().setDiv(new XhtmlNode().setValue("<div>AA</div>")).setStatus(Narrative.NarrativeStatus.GENERATED);
 		patient.addIdentifier().setValue("002");
 		patient.setGender(AdministrativeGender.MALE);
 		myReturnResource = patient;
@@ -332,6 +336,7 @@ public class ResponseValidatingInterceptorR4Test {
 		myInterceptor.setAddResponseHeaderOnSeverity(ResultSeverityEnum.INFORMATION);
 
 		Patient patient = new Patient();
+		patient.getText().setDiv(new XhtmlNode().setValue("<div>AA</div>")).setStatus(Narrative.NarrativeStatus.GENERATED);
 		patient.addIdentifier().setValue("002");
 		patient.setGender(AdministrativeGender.MALE);
 		myReturnResource = patient;
@@ -404,6 +409,7 @@ public class ResponseValidatingInterceptorR4Test {
 	@Test
 	public void testSearchXmlValidNoValidatorsSpecified() throws Exception {
 		Patient patient = new Patient();
+		patient.getText().setDiv(new XhtmlNode().setValue("<div>AA</div>")).setStatus(Narrative.NarrativeStatus.GENERATED);
 		patient.addIdentifier().setValue("002");
 		patient.setGender(AdministrativeGender.MALE);
 		myReturnResource = patient;

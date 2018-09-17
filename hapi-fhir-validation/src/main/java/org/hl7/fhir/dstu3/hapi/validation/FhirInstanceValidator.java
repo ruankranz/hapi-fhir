@@ -591,7 +591,7 @@ public class FhirInstanceValidator extends BaseValidatorBridge implements IValid
 
 		@Override
 		public org.hl7.fhir.r4.model.StructureDefinition fetchTypeDefinition(String typeName) {
-			return null;
+			return fetchResource(org.hl7.fhir.r4.model.StructureDefinition.class, "http://hl7.org/fhir/StructureDefinition/" + typeName);
 		}
 
 		@Override
@@ -698,7 +698,17 @@ public class FhirInstanceValidator extends BaseValidatorBridge implements IValid
 
 		@Override
 		public ValidationResult validateCode(String code, org.hl7.fhir.r4.model.ValueSet vs) {
-			return null;
+			ValueSet convertedVs = null;
+			try {
+				if (vs != null) {
+					convertedVs = VersionConvertor_30_40.convertValueSet(vs);
+				}
+			} catch (FHIRException e) {
+				throw new InternalErrorException(e);
+			}
+
+			org.hl7.fhir.dstu3.context.IWorkerContext.ValidationResult result = myWrap.validateCode(null, code, null, convertedVs);
+			return convertValidationResult(result);
 		}
 
 		@Override

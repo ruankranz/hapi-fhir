@@ -21,6 +21,7 @@ import org.hl7.fhir.r4.model.Questionnaire.QuestionnaireItemComponent;
 import org.hl7.fhir.r4.model.Questionnaire.QuestionnaireItemType;
 import org.hl7.fhir.r4.model.QuestionnaireResponse.QuestionnaireResponseItemComponent;
 import org.hl7.fhir.r4.model.QuestionnaireResponse.QuestionnaireResponseStatus;
+import org.hl7.fhir.utilities.xhtml.XhtmlNode;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -163,6 +164,7 @@ public class QuestionnaireResponseValidatorR4Test {
 		q.addItem().setLinkId("link0").setRequired(true).setType(QuestionnaireItemType.BOOLEAN);
 
 		QuestionnaireResponse qa = new QuestionnaireResponse();
+		qa.getText().setDiv(new XhtmlNode().setValue("<div>AA</div>")).setStatus(Narrative.NarrativeStatus.GENERATED);
 		qa.setStatus(QuestionnaireResponseStatus.COMPLETED);
 		qa.getQuestionnaireElement().setValue("http://example.com/Questionnaire/q1");
 		qa.addItem().setLinkId("link0").addAnswer().setValue(new StringType("FOO"));
@@ -206,6 +208,7 @@ public class QuestionnaireResponseValidatorR4Test {
 		// Good code
 
 		qa = new QuestionnaireResponse();
+		qa.getText().setDiv(new XhtmlNode().setValue("<div>AA</div>")).setStatus(Narrative.NarrativeStatus.GENERATED);
 		qa.setStatus(QuestionnaireResponseStatus.COMPLETED);
 		qa.getQuestionnaireElement().setValue(questionnaireRef);
 		qa.addItem().setLinkId("link0").addAnswer().setValue(new Coding().setSystem("http://codesystems.com/system").setCode("code0"));
@@ -216,6 +219,7 @@ public class QuestionnaireResponseValidatorR4Test {
 		// Bad code
 
 		qa = new QuestionnaireResponse();
+		qa.getText().setDiv(new XhtmlNode().setValue("<div>AA</div>")).setStatus(Narrative.NarrativeStatus.GENERATED);
 		qa.setStatus(QuestionnaireResponseStatus.COMPLETED);
 		qa.getQuestionnaireElement().setValue(questionnaireRef);
 		qa.addItem().setLinkId("link0").addAnswer().setValue(new Coding().setSystem("http://codesystems.com/system").setCode("code1"));
@@ -226,6 +230,7 @@ public class QuestionnaireResponseValidatorR4Test {
 		assertThat(errors.toString(), containsString("QuestionnaireResponse.item.answer"));
 
 		qa = new QuestionnaireResponse();
+		qa.getText().setDiv(new XhtmlNode().setValue("<div>AA</div>")).setStatus(Narrative.NarrativeStatus.GENERATED);
 		qa.setStatus(QuestionnaireResponseStatus.COMPLETED);
 		qa.getQuestionnaireElement().setValue(questionnaireRef);
 		qa.addItem().setLinkId("link0").addAnswer().setValue(new Coding().setSystem("http://codesystems.com/system2").setCode("code3"));
@@ -264,6 +269,7 @@ public class QuestionnaireResponseValidatorR4Test {
 		qGroup.addItem().setLinkId("link1").setType(QuestionnaireItemType.STRING);
 
 		QuestionnaireResponse qa = new QuestionnaireResponse();
+		qa.getText().setDiv(new XhtmlNode().setValue("<div>AA</div>")).setStatus(Narrative.NarrativeStatus.GENERATED);
 		qa.setStatus(QuestionnaireResponseStatus.COMPLETED);
 		qa.getQuestionnaireElement().setValue("http://example.com/Questionnaire/q1");
 		QuestionnaireResponseItemComponent qaGroup = qa.addItem().setLinkId("link0");
@@ -338,6 +344,7 @@ public class QuestionnaireResponseValidatorR4Test {
 
 		// create the response
 		QuestionnaireResponse qa = new QuestionnaireResponse();
+		qa.getText().setDiv(new XhtmlNode().setValue("<div>AA</div>")).setStatus(Narrative.NarrativeStatus.GENERATED);
 		qa.setStatus(QuestionnaireResponseStatus.INPROGRESS);
 		qa.setQuestionnaire(questionnaireRef);
 		qa.addItem().setLinkId("link1")
@@ -394,6 +401,7 @@ public class QuestionnaireResponseValidatorR4Test {
 
 		// create the response
 		QuestionnaireResponse qa = new QuestionnaireResponse();
+		qa.getText().setDiv(new XhtmlNode().setValue("<div>AA</div>")).setStatus(Narrative.NarrativeStatus.GENERATED);
 		qa.setStatus(QuestionnaireResponseStatus.INPROGRESS);
 		qa.setQuestionnaire(questionnaireRef);
 		qa.addItem().setLinkId("link1")
@@ -459,6 +467,7 @@ public class QuestionnaireResponseValidatorR4Test {
 			.thenReturn(q);
 
 		QuestionnaireResponse qa = new QuestionnaireResponse();
+	  qa.getText().setDiv(new XhtmlNode().setValue("<div>AA</div>")).setStatus(Narrative.NarrativeStatus.GENERATED);
 		qa.setQuestionnaire(reference);
 		qa.addItem().setLinkId("link0");
 		qa.setStatus(QuestionnaireResponseStatus.INPROGRESS);
@@ -510,6 +519,7 @@ public class QuestionnaireResponseValidatorR4Test {
 		// Good code
 
 		qa = new QuestionnaireResponse();
+		qa.getText().setDiv(new XhtmlNode().setValue("<div>AA</div>")).setStatus(Narrative.NarrativeStatus.GENERATED);
 		qa.setStatus(QuestionnaireResponseStatus.COMPLETED);
 		qa.getQuestionnaireElement().setValue(questionnaireRef);
 		qa.addItem().setLinkId("link0").addAnswer().setValue(new Coding().setSystem("http://codesystems.com/system").setCode("code0"));
@@ -520,6 +530,7 @@ public class QuestionnaireResponseValidatorR4Test {
 		// Bad code
 
 		qa = new QuestionnaireResponse();
+		qa.getText().setDiv(new XhtmlNode().setValue("<div>AA</div>")).setStatus(Narrative.NarrativeStatus.GENERATED);
 		qa.setStatus(QuestionnaireResponseStatus.COMPLETED);
 		qa.getQuestionnaireElement().setValue(questionnaireRef);
 		qa.addItem().setLinkId("link0").addAnswer().setValue(new Coding().setSystem("http://codesystems.com/system").setCode("code1"));
@@ -532,6 +543,7 @@ public class QuestionnaireResponseValidatorR4Test {
 		// Partial code
 
 		qa = new QuestionnaireResponse();
+		qa.getText().setDiv(new XhtmlNode().setValue("<div>AA</div>")).setStatus(Narrative.NarrativeStatus.GENERATED);
 		qa.setStatus(QuestionnaireResponseStatus.COMPLETED);
 		qa.getQuestionnaireElement().setValue(questionnaireRef);
 		qa.addItem().setLinkId("link0").addAnswer().setValue(new Coding().setSystem(null).setCode("code1"));
@@ -542,6 +554,7 @@ public class QuestionnaireResponseValidatorR4Test {
 		assertThat(errors.toString(), containsString("QuestionnaireResponse.item.answer"));
 
 		qa = new QuestionnaireResponse();
+		qa.getText().setDiv(new XhtmlNode().setValue("<div>AA</div>")).setStatus(Narrative.NarrativeStatus.GENERATED);
 		qa.setStatus(QuestionnaireResponseStatus.COMPLETED);
 		qa.getQuestionnaireElement().setValue(questionnaireRef);
 		qa.addItem().setLinkId("link0").addAnswer().setValue(new Coding().setSystem("").setCode("code1"));
@@ -552,6 +565,7 @@ public class QuestionnaireResponseValidatorR4Test {
 		assertThat(errors.toString(), containsString("QuestionnaireResponse.item.answer"));
 
 		qa = new QuestionnaireResponse();
+		qa.getText().setDiv(new XhtmlNode().setValue("<div>AA</div>")).setStatus(Narrative.NarrativeStatus.GENERATED);
 		qa.setStatus(QuestionnaireResponseStatus.COMPLETED);
 		qa.getQuestionnaireElement().setValue(questionnaireRef);
 		qa.addItem().setLinkId("link0").addAnswer().setValue(new Coding().setSystem("http://system").setCode(null));
@@ -563,6 +577,7 @@ public class QuestionnaireResponseValidatorR4Test {
 		// Wrong type
 
 		qa = new QuestionnaireResponse();
+		qa.getText().setDiv(new XhtmlNode().setValue("<div>AA</div>")).setStatus(Narrative.NarrativeStatus.GENERATED);
 		qa.setStatus(QuestionnaireResponseStatus.COMPLETED);
 		qa.getQuestionnaireElement().setValue(questionnaireRef);
 		qa.addItem().setLinkId("link0").addAnswer().setValue(new IntegerType(123));
@@ -574,6 +589,7 @@ public class QuestionnaireResponseValidatorR4Test {
 		// String answer
 
 		qa = new QuestionnaireResponse();
+		qa.getText().setDiv(new XhtmlNode().setValue("<div>AA</div>")).setStatus(Narrative.NarrativeStatus.GENERATED);
 		qa.setStatus(QuestionnaireResponseStatus.COMPLETED);
 		qa.getQuestionnaireElement().setValue(questionnaireRef);
 		qa.addItem().setLinkId("link0").addAnswer().setValue(new Coding().setDisplay("Hello"));
@@ -584,6 +600,7 @@ public class QuestionnaireResponseValidatorR4Test {
 		// Missing String answer
 
 		qa = new QuestionnaireResponse();
+		qa.getText().setDiv(new XhtmlNode().setValue("<div>AA</div>")).setStatus(Narrative.NarrativeStatus.GENERATED);
 		qa.setStatus(QuestionnaireResponseStatus.COMPLETED);
 		qa.getQuestionnaireElement().setValue(questionnaireRef);
 		qa.addItem().setLinkId("link0").addAnswer().setValue(new Coding().setDisplay(""));
@@ -666,12 +683,13 @@ public class QuestionnaireResponseValidatorR4Test {
 		/*
 		 * Create response
 		 */
-		QuestionnaireResponse questionnaireResponse = new QuestionnaireResponse();
-		questionnaireResponse.setStatus(QuestionnaireResponse.QuestionnaireResponseStatus.COMPLETED);
-		questionnaireResponse.setQuestionnaire(ID_ICC_QUESTIONNAIRE_SETUP);
-		questionnaireResponse.getSubject().setReference("Patient/123");
+		QuestionnaireResponse qa = new QuestionnaireResponse();
+		qa.getText().setDiv(new XhtmlNode().setValue("<div>AA</div>")).setStatus(Narrative.NarrativeStatus.GENERATED);
+		qa.setStatus(QuestionnaireResponse.QuestionnaireResponseStatus.COMPLETED);
+		qa.setQuestionnaire(ID_ICC_QUESTIONNAIRE_SETUP);
+		qa.getSubject().setReference("Patient/123");
 
-		QuestionnaireResponse.QuestionnaireResponseItemComponent basicGroup = questionnaireResponse
+		QuestionnaireResponse.QuestionnaireResponseItemComponent basicGroup = qa
 			.addItem();
 		basicGroup.setLinkId("basic");
 		basicGroup
@@ -680,9 +698,9 @@ public class QuestionnaireResponseValidatorR4Test {
 			.addAnswer()
 			.setValue(new Coding(SYSTEMURI_ICC_SCHOOLTYPE, CODE_ICC_SCHOOLTYPE_PT, ""));
 
-		when(myValSupport.fetchResource(any(FhirContext.class), eq(Questionnaire.class), eq(questionnaireResponse.getQuestionnaire()))).thenReturn(questionnaire);
+		when(myValSupport.fetchResource(any(FhirContext.class), eq(Questionnaire.class), eq(qa.getQuestionnaire()))).thenReturn(questionnaire);
 		when(myValSupport.fetchResource(any(FhirContext.class), eq(ValueSet.class), eq(ID_VS_SCHOOLTYPE))).thenReturn(iccSchoolTypeVs);
-		ValidationResult errors = myVal.validateWithResult(questionnaireResponse);
+		ValidationResult errors = myVal.validateWithResult(qa);
 
 		ourLog.info(errors.toString());
 		assertThat(errors.toString(), containsString("No issues"));

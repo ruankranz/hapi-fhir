@@ -2998,7 +2998,7 @@ public class FHIRPathEngine {
         if (s.startsWith("#")) {
           Property p = context.resource.getChildByName("contained");
           for (Base c : p.getValues()) {
-            if (s.substring(1).equals(c.getIdBase())) {
+            if (s.equals(c.getIdBase())) {
               res = c;
               break;
             }
