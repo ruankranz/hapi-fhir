@@ -42,6 +42,7 @@ import ca.uhn.fhir.rest.api.server.IBundleProvider;
 import ca.uhn.fhir.rest.api.server.RequestDetails;
 import ca.uhn.fhir.rest.param.ParameterUtil;
 import ca.uhn.fhir.rest.param.QualifierDetails;
+import ca.uhn.fhir.rest.server.RestfulServerUtils;
 import ca.uhn.fhir.rest.server.exceptions.*;
 import ca.uhn.fhir.rest.server.interceptor.IServerInterceptor;
 import ca.uhn.fhir.rest.server.interceptor.IServerInterceptor.ActionRequestDetails;
@@ -510,9 +511,13 @@ public abstract class BaseHapiFhirResourceDao<T extends IBaseResource> extends B
 	@Override
 	@Transactional(propagation = Propagation.NEVER)
 	public ExpungeOutcome expunge(IIdType theId, ExpungeOptions theExpungeOptions) {
-		BaseHasResource entity = readEntity(theId);
+
+		TransactionTemplate txTemplate = new TransactionTemplate(myPlatformTransactionManager);
+
+		BaseHasResource entity = txTemplate.execute(t->readEntity(theId));
 		if (theId.hasVersionIdPart()) {
-			BaseHasResource currentVersion = readEntity(theId.toVersionless());
+			BaseHasResource currentVersion;
+			currentVersion = txTemplate.execute(t->readEntity(theId.toVersionless()));
 			if (entity.getVersion() == currentVersion.getVersion()) {
 				throw new PreconditionFailedException("Can not perform version-specific expunge of resource " + theId.toUnqualified().getValue() + " as this is the current version");
 			}
