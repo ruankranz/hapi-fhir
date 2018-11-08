@@ -1,4 +1,4 @@
-package ca.uhn.fhir.jpa.util;
+package ca.uhn.fhir.jpa.subscription.matcher;
 
 /*-
  * #%L
@@ -20,15 +20,13 @@ package ca.uhn.fhir.jpa.util;
  * #L%
  */
 
-public interface IReindexController {
+import ca.uhn.fhir.jpa.subscription.ResourceModifiedMessage;
 
-	/**
-	 * This method is called automatically by the scheduler
-	 */
-	void performReindexingPass();
+public class SubscriptionMatcherInMemory implements ISubscriptionMatcher {
 
-	/**
-	 * This method requests that the reindex process happen as soon as possible
-	 */
-	void requestReindex();
+	@Override
+	public boolean match(String criteria, ResourceModifiedMessage msg) {
+		// FIXME KHS implement
+		return true;
+	}
 }

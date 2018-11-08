@@ -9,9 +9,9 @@ package ca.uhn.fhir.jpa.config;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,6 +25,8 @@ import ca.uhn.fhir.i18n.HapiLocalizer;
 import ca.uhn.fhir.jpa.dao.DaoRegistry;
 import ca.uhn.fhir.jpa.provider.SubscriptionTriggeringProvider;
 import ca.uhn.fhir.jpa.search.*;
+import ca.uhn.fhir.jpa.search.reindex.IResourceReindexingSvc;
+import ca.uhn.fhir.jpa.search.reindex.ResourceReindexingSvcImpl;
 import ca.uhn.fhir.jpa.search.warm.CacheWarmingSvcImpl;
 import ca.uhn.fhir.jpa.search.warm.ICacheWarmingSvc;
 import ca.uhn.fhir.jpa.sp.ISearchParamPresenceSvc;
@@ -32,12 +34,7 @@ import ca.uhn.fhir.jpa.sp.SearchParamPresenceSvcImpl;
 import ca.uhn.fhir.jpa.subscription.email.SubscriptionEmailInterceptor;
 import ca.uhn.fhir.jpa.subscription.resthook.SubscriptionRestHookInterceptor;
 import ca.uhn.fhir.jpa.subscription.websocket.SubscriptionWebsocketInterceptor;
-import ca.uhn.fhir.jpa.util.IReindexController;
-import ca.uhn.fhir.jpa.util.ReindexController;
-import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.jpa.HibernatePersistenceProvider;
-import org.hibernate.query.criteria.LiteralHandlingMode;
-import org.hibernate.resource.jdbc.spi.PhysicalConnectionHandlingMode;
 import org.springframework.beans.factory.annotation.Autowire;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -57,8 +54,8 @@ import org.springframework.scheduling.concurrent.ScheduledExecutorFactoryBean;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 
 import javax.annotation.Nonnull;
-import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
+
 
 @Configuration
 @EnableScheduling
@@ -70,7 +67,7 @@ public abstract class BaseConfig implements SchedulingConfigurer {
 	@Autowired
 	protected Environment myEnv;
 
-	@Bean
+	@Bean(name = "myDaoRegistry")
 	public DaoRegistry daoRegistry() {
 		return new DaoRegistry();
 	}
@@ -91,22 +88,7 @@ public abstract class BaseConfig implements SchedulingConfigurer {
 	 * factory with HAPI FHIR customizations
 	 */
 	protected LocalContainerEntityManagerFactoryBean entityManagerFactory() {
-		LocalContainerEntityManagerFactoryBean retVal = new LocalContainerEntityManagerFactoryBean() {
-			@Override
-			public Map<String, Object> getJpaPropertyMap() {
-				Map<String, Object> retVal = super.getJpaPropertyMap();
-
-				if (!retVal.containsKey(AvailableSettings.CRITERIA_LITERAL_HANDLING_MODE)) {
-					retVal.put(AvailableSettings.CRITERIA_LITERAL_HANDLING_MODE, LiteralHandlingMode.BIND);
-				}
-
-				if (!retVal.containsKey(AvailableSettings.CONNECTION_HANDLING)) {
-					retVal.put(AvailableSettings.CONNECTION_HANDLING, PhysicalConnectionHandlingMode.DELAYED_ACQUISITION_AND_HOLD);
-				}
-
-				return retVal;
-			}
-		};
+		LocalContainerEntityManagerFactoryBean retVal = new HapiFhirLocalContainerEntityManagerFactoryBean();
 		configureEntityManagerFactory(retVal, fhirContext());
 		return retVal;
 	}
@@ -128,11 +110,6 @@ public abstract class BaseConfig implements SchedulingConfigurer {
 		return new HibernateJpaDialect();
 	}
 
-	@Bean
-	public IReindexController reindexController() {
-		return new ReindexController();
-	}
-
 	@Bean()
 	public ScheduledExecutorService scheduledExecutorService() {
 		ScheduledExecutorFactoryBean b = new ScheduledExecutorFactoryBean();
@@ -141,13 +118,13 @@ public abstract class BaseConfig implements SchedulingConfigurer {
 		return b.getObject();
 	}
 
-	@Bean
+	@Bean(name = "mySubscriptionTriggeringProvider")
 	@Lazy
-	public SubscriptionTriggeringProvider mySubscriptionTriggeringProvider() {
+	public SubscriptionTriggeringProvider subscriptionTriggeringProvider() {
 		return new SubscriptionTriggeringProvider();
 	}
 
-	@Bean(autowire = Autowire.BY_TYPE)
+	@Bean(autowire = Autowire.BY_TYPE, name = "mySearchCoordinatorSvc")
 	public ISearchCoordinatorSvc searchCoordinatorSvc() {
 		return new SearchCoordinatorSvcImpl();
 	}
@@ -191,6 +168,11 @@ public abstract class BaseConfig implements SchedulingConfigurer {
 		retVal.setConcurrentExecutor(scheduledExecutorService());
 		retVal.setScheduledExecutor(scheduledExecutorService());
 		return retVal;
+	}
+
+	@Bean
+	public IResourceReindexingSvc resourceReindexingSvc() {
+		return new ResourceReindexingSvcImpl();
 	}
 
 	public static void configureEntityManagerFactory(LocalContainerEntityManagerFactoryBean theFactory, FhirContext theCtx) {

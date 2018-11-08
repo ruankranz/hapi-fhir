@@ -29,10 +29,10 @@ import ca.uhn.fhir.jpa.dao.data.ISearchResultDao;
 import ca.uhn.fhir.jpa.entity.*;
 import ca.uhn.fhir.jpa.search.DatabaseBackedPagingProvider;
 import ca.uhn.fhir.jpa.search.PersistedJpaBundleProvider;
+import ca.uhn.fhir.jpa.search.reindex.IResourceReindexingSvc;
 import ca.uhn.fhir.jpa.util.DeleteConflict;
 import ca.uhn.fhir.jpa.util.ExpungeOptions;
 import ca.uhn.fhir.jpa.util.ExpungeOutcome;
-import ca.uhn.fhir.jpa.util.IReindexController;
 import ca.uhn.fhir.jpa.util.jsonpatch.JsonPatchUtils;
 import ca.uhn.fhir.jpa.util.xmlpatch.XmlPatchUtils;
 import ca.uhn.fhir.model.api.*;
@@ -42,7 +42,6 @@ import ca.uhn.fhir.rest.api.server.IBundleProvider;
 import ca.uhn.fhir.rest.api.server.RequestDetails;
 import ca.uhn.fhir.rest.param.ParameterUtil;
 import ca.uhn.fhir.rest.param.QualifierDetails;
-import ca.uhn.fhir.rest.server.RestfulServerUtils;
 import ca.uhn.fhir.rest.server.exceptions.*;
 import ca.uhn.fhir.rest.server.interceptor.IServerInterceptor;
 import ca.uhn.fhir.rest.server.interceptor.IServerInterceptor.ActionRequestDetails;
@@ -54,16 +53,12 @@ import org.hl7.fhir.instance.model.api.*;
 import org.hl7.fhir.r4.model.InstantType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
-import org.springframework.lang.NonNull;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
@@ -91,8 +86,6 @@ public abstract class BaseHapiFhirResourceDao<T extends IBaseResource> extends B
 	private String mySecondaryPrimaryKeyParamName;
 	@Autowired
 	private ISearchParamRegistry mySearchParamRegistry;
-	@Autowired
-	private IReindexController myReindexController;
 
 	@Override
 	public void addTag(IIdType theId, TagTypeEnum theTagType, String theScheme, String theTerm, String theLabel) {
@@ -390,12 +383,26 @@ public abstract class BaseHapiFhirResourceDao<T extends IBaseResource> extends B
 			}
 		}
 
+		boolean serverAssignedId;
 		if (isNotBlank(theResource.getIdElement().getIdPart())) {
-			if (isValidPid(theResource.getIdElement())) {
-				throw new UnprocessableEntityException(
-					"This server cannot create an entity with a user-specified numeric ID - Client should not specify an ID when creating a new resource, or should include at least one letter in the ID to force a client-defined ID");
+			switch (myDaoConfig.getResourceClientIdStrategy()) {
+				case NOT_ALLOWED:
+					throw new ResourceNotFoundException(
+						getContext().getLocalizer().getMessage(BaseHapiFhirResourceDao.class, "failedToCreateWithClientAssignedIdNotAllowed", theResource.getIdElement().getIdPart()));
+				case ALPHANUMERIC:
+					if (theResource.getIdElement().isIdPartValidLong()) {
+						throw new InvalidRequestException(
+							getContext().getLocalizer().getMessage(BaseHapiFhirResourceDao.class, "failedToCreateWithClientAssignedNumericId", theResource.getIdElement().getIdPart()));
+					}
+					createForcedIdIfNeeded(entity, theResource.getIdElement(), false);
+					break;
+				case ANY:
+					createForcedIdIfNeeded(entity, theResource.getIdElement(), true);
+					break;
 			}
-			createForcedIdIfNeeded(entity, theResource.getIdElement());
+			serverAssignedId = false;
+		} else {
+			serverAssignedId = true;
 		}
 
 		// Notify interceptors
@@ -416,8 +423,21 @@ public abstract class BaseHapiFhirResourceDao<T extends IBaseResource> extends B
 
 		// Perform actual DB update
 		ResourceTable updatedEntity = updateEntity(theRequest, theResource, entity, null, thePerformIndexing, thePerformIndexing, theUpdateTime, false, thePerformIndexing);
-		theResource.setId(entity.getIdDt());
 
+		theResource.setId(entity.getIdDt());
+		if (serverAssignedId) {
+			switch (myDaoConfig.getResourceClientIdStrategy()) {
+				case NOT_ALLOWED:
+				case ALPHANUMERIC:
+					break;
+				case ANY:
+					ForcedId forcedId = createForcedIdIfNeeded(updatedEntity, theResource.getIdElement(), true);
+					if (forcedId != null) {
+						myForcedIdDao.save(forcedId);
+					}
+					break;
+			}
+		}
 
 		/*
 		 * If we aren't indexing (meaning we're probably executing a sub-operation within a transaction),
@@ -624,21 +644,20 @@ public abstract class BaseHapiFhirResourceDao<T extends IBaseResource> extends B
 
 				TransactionTemplate txTemplate = new TransactionTemplate(myPlatformTransactionManager);
 				txTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
-				Integer updatedCount = txTemplate.execute(new TransactionCallback<Integer>() {
-					@Override
-					public @NonNull
-					Integer doInTransaction(@Nonnull TransactionStatus theStatus) {
-						return myResourceTableDao.markResourcesOfTypeAsRequiringReindexing(resourceType);
-					}
+				txTemplate.execute(t->{
+					myResourceReindexingSvc.markAllResourcesForReindexing(resourceType);
+					return null;
 				});
 
-				ourLog.debug("Marked {} resources for reindexing", updatedCount);
+				ourLog.debug("Marked resources of type {} for reindexing", resourceType);
 			}
 		}
 
 		mySearchParamRegistry.requestRefresh();
-		myReindexController.requestReindex();
 	}
+
+	@Autowired
+	private IResourceReindexingSvc myResourceReindexingSvc;
 
 	@Override
 	public <MT extends IBaseMetaType> MT metaAddOperation(IIdType theResourceId, MT theMetaAdd, RequestDetails theRequestDetails) {
@@ -727,6 +746,7 @@ public abstract class BaseHapiFhirResourceDao<T extends IBaseResource> extends B
 		return retVal;
 	}
 
+	@SuppressWarnings("JpaQlInspection")
 	@Override
 	public <MT extends IBaseMetaType> MT metaGetOperation(Class<MT> theType, RequestDetails theRequestDetails) {
 		// Notify interceptors
@@ -831,6 +851,25 @@ public abstract class BaseHapiFhirResourceDao<T extends IBaseResource> extends B
 	public Set<Long> processMatchUrl(String theMatchUrl) {
 		return processMatchUrl(theMatchUrl, getResourceType());
 	}
+
+	@Override
+	public IBaseResource readByPid(Long thePid) {
+		StopWatch w = new StopWatch();
+
+		Optional<ResourceTable> entity = myResourceTableDao.findById(thePid);
+		if (!entity.isPresent()) {
+			throw new ResourceNotFoundException("No resource found with PID " + thePid);
+		}
+		if (entity.get().getDeleted() != null) {
+			throw new ResourceGoneException("Resource was deleted at " + new InstantType(entity.get().getDeleted()).getValueAsString());
+		}
+
+		T retVal = toResource(myResourceType, entity.get(), null, false);
+
+		ourLog.debug("Processed read on {} in {}ms", thePid, w.getMillis());
+		return retVal;
+	}
+
 
 	@Override
 	public T read(IIdType theId) {
@@ -1215,10 +1254,6 @@ public abstract class BaseHapiFhirResourceDao<T extends IBaseResource> extends B
 			try {
 				entity = readEntityLatestVersion(resourceId);
 			} catch (ResourceNotFoundException e) {
-				if (resourceId.isIdPartValidLong()) {
-					throw new InvalidRequestException(
-						getContext().getLocalizer().getMessage(BaseHapiFhirResourceDao.class, "failedToCreateWithClientAssignedNumericId", theResource.getIdElement().getIdPart()));
-				}
 				return doCreate(theResource, null, thePerformIndexing, new Date(), theRequestDetails);
 			}
 		}
@@ -1233,6 +1268,19 @@ public abstract class BaseHapiFhirResourceDao<T extends IBaseResource> extends B
 		}
 
 		IBaseResource oldResource = toResource(entity, false);
+
+		/*
+		 * Mark the entity as not deleted - This is also done in the actual updateInternal()
+		 * method later on so it usually doesn't matter whether we do it here, but in the
+		 * case of a transaction with multiple PUTs we don't get there until later so
+		 * having this here means that a transaction can have a reference in one
+		 * resource to another resource in the same transaction that is being
+		 * un-deleted by the transaction. Wacky use case, sure. But it's real.
+		 *
+		 * See SystemProviderR4Test#testTransactionReSavesPreviouslyDeletedResources
+		 * for a test that needs this.
+		 */
+		entity.setDeleted(null);
 
 		/*
 		 * If we aren't indexing, that means we're doing this inside a transaction.
@@ -1296,12 +1344,14 @@ public abstract class BaseHapiFhirResourceDao<T extends IBaseResource> extends B
 
 	private void validateGivenIdIsAppropriateToRetrieveResource(IIdType theId, BaseHasResource entity) {
 		if (entity.getForcedId() != null) {
-			if (theId.isIdPartValidLong()) {
-				// This means that the resource with the given numeric ID exists, but it has a "forced ID", meaning that
-				// as far as the outside world is concerned, the given ID doesn't exist (it's just an internal pointer
-				// to the
-				// forced ID)
-				throw new ResourceNotFoundException(theId);
+			if (myDaoConfig.getResourceClientIdStrategy() != DaoConfig.ClientIdStrategyEnum.ANY) {
+				if (theId.isIdPartValidLong()) {
+					// This means that the resource with the given numeric ID exists, but it has a "forced ID", meaning that
+					// as far as the outside world is concerned, the given ID doesn't exist (it's just an internal pointer
+					// to the
+					// forced ID)
+					throw new ResourceNotFoundException(theId);
+				}
 			}
 		}
 	}

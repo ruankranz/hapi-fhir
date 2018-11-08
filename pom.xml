@@ -433,6 +433,7 @@
 		</developer>
 		<developer>
 			<id>RuthAlk</id>
+			<name>Ruth Alkema</name>
 		</developer>
 		<developer>
 			<id>Tastelezz</id>
@@ -472,6 +473,10 @@
 		</developer>
 		<developer>
 			<id>jbalbien</id>
+		</developer>
+		<developer>
+			<id>volsch</id>
+			<name>Volker Schmidt</name>
 		</developer>
 	</developers>
 
@@ -1727,6 +1732,12 @@
 								<copy todir="target/site/apidocs-jpaserver">
 									<fileset dir="hapi-fhir-jpaserver-base/target/site/apidocs"/>
 								</copy>
+								<copy todir="target/site/apidocs-client">
+									<fileset dir="hapi-fhir-client/target/site/apidocs"/>
+								</copy>
+								<copy todir="target/site/apidocs-server">
+									<fileset dir="hapi-fhir-server/target/site/apidocs"/>
+								</copy>
 								<copy todir="target/site/xref-jpaserver">
 									<fileset dir="hapi-fhir-jpaserver-base/target/site/xref"/>
 								</copy>
@@ -2057,22 +2068,23 @@
 					</reportsDirectories>
 				</configuration>
 			</plugin>
-			<plugin>
+			<!--			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-project-info-reports-plugin</artifactId>
-				<version>2.8.1</version>
+				<version>3.0.0</version>
 				<inherited>false</inherited>
 				<reportSets>
 					<reportSet>
 						<reports>
-							<report>project-team</report>
-							<report>issue-tracking</report>
+							<report>team</report>
+							<report>issue-management</report>
 							<report>license</report>
 							<report>scm</report>
 						</reports>
 					</reportSet>
 				</reportSets>
 			</plugin>
+			-->
 			<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-linkcheck-plugin</artifactId> <version>1.1</version> </plugin> -->
 		</plugins>
 	</reporting>
@@ -2131,6 +2143,8 @@
 				<module>hapi-fhir-structures-dstu2</module>
 				<module>hapi-fhir-structures-dstu3</module>
 				<module>hapi-fhir-structures-r4</module>
+				<module>hapi-fhir-client</module>
+				<module>hapi-fhir-server</module>
 				<module>hapi-fhir-jpaserver-base</module>
 				<module>hapi-fhir-jaxrsserver-base</module>
 				<!-- <module>hapi-fhir-cobertura</module> -->
