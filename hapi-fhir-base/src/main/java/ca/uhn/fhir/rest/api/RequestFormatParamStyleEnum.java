@@ -1,4 +1,4 @@
-package ca.uhn.fhir.util;
+package ca.uhn.fhir.rest.api;
 
 /*-
  * #%L
@@ -20,12 +20,15 @@ package ca.uhn.fhir.util;
  * #L%
  */
 
-public enum VersionEnum {
+public enum RequestFormatParamStyleEnum {
+	/**
+	 * Do not include a _format parameter on requests
+	 */
+	NONE,
 
-	V3_3_0,
-	V3_4_0,
-	V3_5_0,
-	V3_6_0,
-	V3_7_0
+	/**
+	 * "xml" or "json"
+	 */
+	SHORT
 
 }

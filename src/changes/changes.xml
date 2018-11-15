@@ -6,13 +6,43 @@
 		<title>HAPI FHIR Changelog</title>
 	</properties>
 	<body>
-		<release version="3.6.0" date="TBD">
+		<release version="3.7.0" date="TBD" description="Gale">
+			<action type="add">
+				The version of a few dependencies have been bumped to the
+				latest versions (dependent HAPI modules listed in brackets):
+				<![CDATA[
+					<ul>
+						<li>thymeleaf-spring4 (Testpage Overlay) has been replaced with thymeleaf-spring5</li>
+					</ul>
+				]]>
+			</action>
+			<action type="fix">
+				The JPA server $expunge operation could sometimes fail to expunge if
+				another resource linked to a resource that was being
+				expunged. This has been corrected. In addition, the $expunge operation 
+				has been refactored to use smaller chunks of work
+				within a single DB transaction. This improves performance and reduces contention when
+				performing large expunge workloads.
+			</action>
+			<action type="add" issue="1117">
+				A badly formatted log message when handing exceptions was cleaned up. Thanks to
+				Magnus Watn for the pull request!
+			</action>
+			<action type="fix" issue="944">
+				A NullPointerException has been fixed when using custom resource classes that
+				have a @Block class as a child element. Thanks to Lars Gram Mathiasen for
+				reporting and providing a test case!
+			</action>
+		</release>
+		<release version="3.6.0" date="2018-11-12" description="Food">
 			<action type="add">
 				The version of a few dependencies have been bumped to the
 				latest versions (dependent HAPI modules listed in brackets):
 				<![CDATA[
 					<ul>
 						<li>Karaf (OSGi): 4.1.4 -&gt; 4.1.6</li>
+						<li>Commons-Compress (JPA): 1.14 -&gt; 1.18</li>
+						<li>Jackson (JPA): 2.9.2 -&gt; 2.9.7</li>
 					</ul>
 				]]>
 			</action>
@@ -27,14 +57,15 @@
 				has been streamlined to generate more predictable IDs in some cases.
 			</action>
 			<action type="fix">
-				An issue in the HAPI FHIR CLI database mogrator command has been resolved, where
+				An issue in the HAPI FHIR CLI database migrator command has been resolved, where
 				some database drivers did not automatically register and had to be manually added to
 				the classpath.
 			</action>
 			<action type="add">
 				The module which deletes stale searches has been modified so that it deletes very large
 				searches (searches with 10000+ results in the query cache) in smaller batches, in order
-				to avoid having very long running delete operations running.
+				to avoid having very long running delete operations occupying database connections for a 
+				long time or timing out.
 			</action>
 			<action type="fix">
 				When invoking an operation using the fluent client on an instance, the operation would
@@ -45,6 +76,11 @@
 				A new operation has been added to the JPA server called
 				<![CDATA[<code>$trigger-subscription</code>]]>. This can
 				be used to cause a transaction to redeliver a resource that previously triggered.
+				See 
+				<![CDATA[<a href="https://smilecdr.com/docs/current/fhir_repository/subscription.html#manually-triggering-subscriptions">this link</a>]]>
+				for a description of how this feature works. Note that you must add the 
+				SubscriptionRetriggeringProvider as shown in the sample project
+				<![CDATA[<a href="https://github.com/hapifhir/hapi-fhir-jpaserver-starter/blob/master/src/main/java/ca/uhn/fhir/jpa/demo/JpaServerDemo.java">here</a>.]]>
 			</action>
 			<action type="add">
 				When operating in R4 mode, the HAPI FHIR server will now populate Bundle.entry.response
@@ -99,11 +135,6 @@
 				AuthorizationInterceptor did not allow FHIR batch operations when the transaction()
 				permission is granted. This has been corrected so that transaction() allows both
 				batch and transaction requests to proceed.
-			</action>
-			<action type="fix">
-				The AuthorizationInterceptor was previously not able to authorize the FHIR
-				batch operation. As of this version, when authorizing a transaction operation
-				(via the transaction() rule), both batch and transaction will be allowed.
 			</action>
 			<action type="add">
 				The JPA server now automatically supplies several appropriate hibernate performance
@@ -165,13 +196,26 @@
 				and only option previously) or allow any IDs including alphanumeric.
 			</action>
 			<action type="add" issue="1103" dev="ruthakm">
-				It is now possible to use your own IMessageResolver instance in the narrative 
+				It is now possible to use your own IMessageResolver instance in the narrative
 				generator. Thanks to Ruth Alkema for the pull request!
 			</action>
 			<action type="fix" issue="1071" dev="volsch">
 				When restful reponses tried to return multiple instances of the same response header,
 				some instances were discarded. Thanks to Volker Schmidt for the pull request!
-			</action>"
+			</action>
+			<action type="add">
+				The REST client now allows for configurable behaviour as to whether a
+				<![CDATA[<code>_format</code>]]>
+				parameter should be included in requests.
+			</action>
+			<action type="add">
+				JPA server R4 SearchParameter custom expression validation is now done using the
+				actual FHIRPath evaluator, meaning it is more rigorous in what it can find.
+			</action>
+			<action type="fix" issue="1047">
+				A NullPointerException in DateRangeParam when a client URL conrtained a malformed
+				date was corrected. Thanks Heinz-Dieter Conradi for the Pull Request!
+			</action>
 		</release>
 
 		<release version="3.5.0" date="2018-09-17">
