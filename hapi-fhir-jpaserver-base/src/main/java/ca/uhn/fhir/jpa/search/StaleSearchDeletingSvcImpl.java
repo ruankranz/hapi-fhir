@@ -4,14 +4,14 @@ package ca.uhn.fhir.jpa.search;
  * #%L
  * HAPI FHIR JPA Server
  * %%
- * Copyright (C) 2014 - 2018 University Health Network
+ * Copyright (C) 2014 - 2019 University Health Network
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -56,8 +56,10 @@ public class StaleSearchDeletingSvcImpl implements IStaleSearchDeletingSvc {
 	 * DELETE FROM foo WHERE params IN (aaaa)
 	 * type query and this can fail if we have 1000s of params
 	 */
-	public static int ourMaximumResultsToDeleteInOneStatement = 500;
-	public static int ourMaximumResultsToDeleteInOnePass = 20000;
+	public static final int DEFAULT_MAX_RESULTS_TO_DELETE_IN_ONE_STMT = 500;
+	public static final int DEFAULT_MAX_RESULTS_TO_DELETE_IN_ONE_PAS = 20000;
+	private static int ourMaximumResultsToDeleteInOneStatement = DEFAULT_MAX_RESULTS_TO_DELETE_IN_ONE_STMT;
+	private static int ourMaximumResultsToDeleteInOnePass = DEFAULT_MAX_RESULTS_TO_DELETE_IN_ONE_PAS;
 	private static Long ourNowForUnitTests;
 	/*
 	 * We give a bit of extra leeway just to avoid race conditions where a query result
@@ -164,6 +166,11 @@ public class StaleSearchDeletingSvcImpl implements IStaleSearchDeletingSvc {
 	@VisibleForTesting
 	public void setCutoffSlackForUnitTest(long theCutoffSlack) {
 		myCutoffSlack = theCutoffSlack;
+	}
+
+	@VisibleForTesting
+	public static void setMaximumResultsToDeleteInOnePassForUnitTest(int theMaximumResultsToDeleteInOnePass) {
+		ourMaximumResultsToDeleteInOnePass = theMaximumResultsToDeleteInOnePass;
 	}
 
 	@VisibleForTesting

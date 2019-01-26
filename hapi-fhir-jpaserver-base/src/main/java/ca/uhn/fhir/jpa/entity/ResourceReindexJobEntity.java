@@ -4,14 +4,14 @@ package ca.uhn.fhir.jpa.entity;
  * #%L
  * HAPI FHIR JPA Server
  * %%
- * Copyright (C) 2014 - 2018 University Health Network
+ * Copyright (C) 2014 - 2019 University Health Network
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -55,6 +55,16 @@ public class ResourceReindexJobEntity implements Serializable {
 	@Column(name = "SUSPENDED_UNTIL", nullable = true)
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date mySuspendedUntil;
+	@Column(name = "REINDEX_COUNT", nullable = true)
+	private Integer myReindexCount;
+
+	public Integer getReindexCount() {
+		return myReindexCount;
+	}
+
+	public void setReindexCount(Integer theReindexCount) {
+		myReindexCount = theReindexCount;
+	}
 
 	public Date getSuspendedUntil() {
 		return mySuspendedUntil;
